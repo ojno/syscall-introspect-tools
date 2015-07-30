@@ -1,0 +1,30 @@
+[submodule "submodules/libdwarf"]
+	path = submodules/libdwarf
+	url = https://github.com/ojno/libdwarf
+[submodule "submodules/libcxxfileno"]
+	path = submodules/libcxxfileno
+	url = https://github.com/ojno/libcxxfileno
+[submodule "submodules/libsrk31cxx"]
+	path = submodules/libsrk31cxx
+	url = https://github.com/ojno/libsrk31cxx
+[submodule "submodules/libdwarfpp"]
+	path = submodules/libdwarfpp
+	url = https://github.com/ojno/libdwarfpp
+[submodule "submodules/libcxxgen"]
+	path = submodules/libcxxgen
+	url = https://github.com/ojno/libcxxgen
+[submodule "submodules/dwarfidl"]
+	path = submodules/dwarfidl
+	url = https://github.com/ojno/dwarfidl
+[submodule "submodules/liballocs"]
+	path = submodules/liballocs
+	url = https://github.com/ojno/liballocs
+[submodule "submodules/libfootprints"]
+	path = submodules/libfootprints
+	url = https://github.com/ojno/libfootprints
+[submodule "submodules/trap-syscalls"]
+	path = submodules/trap-syscalls
+	url = https://github.com/ojno/trap-syscalls
+[submodule "submodules/libantlr3cxx"]
+	path = submodules/libantlr3cxx
+	url = https://github.com/ojno/libantlr3cxx

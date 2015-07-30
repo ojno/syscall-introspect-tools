@@ -1,0 +1,99 @@
+/bin/
+/include/
+/lib/
+/share/
+
+/contrib/glib-2.44.1/
+/contrib/libantlr3c-3.4/
+
+*.allocstubs.c
+*.allocstubs.s
+*.cil.c
+*.cil.i
+*.cil.s
+*.cma
+*.cmi
+*.cmo
+*.cmx
+*.cmxs
+*.i
+*.i.allocs
+*.o.fixuplog
+*.swp
+
+__pycache__/
+*.py[cod]
+
+.deps/
+.libs/
+
+
+# http://www.gnu.org/software/automake
+
+Makefile.in
+
+# http://www.gnu.org/software/autoconf
+
+.dirstamp
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/m4/
+/config.guess
+/config.sub
+/config.status
+/config.log
+/ltmain.sh
+/libtool
+
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+*.pc
+
+# Dependencies
+.*.d
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+
+# Backup files
+*~
+\#*\#
+.\#*
+
+# WTF Dropbox
+
+.fuse_hidden*
+.nfs*
+.dropbox*
