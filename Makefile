@@ -196,7 +196,7 @@ submodules/libdwarf/configure:
 	git submodule update --init --recursive
 #	cd "$(dir $@)" && libtoolize && autoreconf -i
 submodules/libdwarf/Makefile: submodules/libdwarf/configure
-	cd "$(dir $@)" && ./configure $(CONFIGURE_FLAGS) --enable-shared
+	cd submodules/libdwarf && ./configure $(CONFIGURE_FLAGS) --enable-shared
 
 .PHONY: clean_libdwarf
 clean_libdwarf:
@@ -206,11 +206,13 @@ clean: clean_libdwarf
 .PHONY: all_submodules_libdwarf
 all_submodules_libdwarf: submodules/libdwarf/Makefile
 	$(MAKE) -C "submodules/libdwarf/libdwarf" all
+	$(MAKE) -C "submodules/libdwarf/dwarfdump" all
 all: all_submodules_libdwarf
 
 .PHONY: install_submodules_libdwarf
 install_submodules_libdwarf: all_submodules_libdwarf
 	for f in include/libdwarf.h include/dwarf.h lib/libdwarf.so lib/libdwarf.a; do ${INSTALL} -m 644 submodules/libdwarf/libdwarf/`basename $$f` $$f; done
+	${INSTALL} submodules/libdwarf/dwarfdump/dwarfdump bin/dwarfdump
 	chmod 755 lib/libdwarf.so
 install: install_submodules_libdwarf
 
