@@ -32,10 +32,10 @@ independent: ;
 # where are we?
 THIS_MAKEFILE := $(realpath $(lastword $(MAKEFILE_LIST)))
 PREFIX := $(dir $(THIS_MAKEFILE))
-CFLAGS += -I$(PREFIX)/include -fPIC -DPIC
+CFLAGS += -I$(PREFIX)/include -fPIC
 CPPFLAGS += -I$(PREFIX)/include
-CXXFLAGS += -I$(PREFIX)/include -fPIC -DPIC
-LDFLAGS += -L$(PREFIX)/lib -fPIC -DPIC
+CXXFLAGS += -I$(PREFIX)/include -fPIC
+LDFLAGS += -L$(PREFIX)/lib
 PATH := $(PREFIX)/bin:$(PATH)
 LD_LIBRARY_PATH := $(PREFIX)/lib:$(PATH)
 PKG_CONFIG_PATH := $(PREFIX)/lib/pkgconfig:$(PATH)
@@ -57,7 +57,7 @@ LA_SUFFIX := .la
 CONFIGURE_FLAGS := --prefix=$(PREFIX)
 
 DOWNLOAD := wget
-DOWNLOAD_BASE := https://ojno.github.io/syscall-introspect-deps
+DOWNLOAD_BASE := http://ojno.github.io/syscall-introspect-deps
 
 ############################################################ Utility functions
 
@@ -73,13 +73,17 @@ firstdir = $(firstword $(subst /, ,$(dir $(firstword $(1)))))
 define contrib_rules
 
 ifdef $(1)_DEPENDENCIES
-contrib/$(1)/configure.ac: $($(1)_DEPENDENCIES)
-contrib/$(1)/configure.in: $($(1)_DEPENDENCIES)
+contrib/$(1)/Makefile: | $($(1)_DEPENDENCIES)
+all_contrib_$(1): $($(1)_DEPENDENCIES)
 endif
 
 ifdef $(1)_CONFIGURE_FLAGS
 contrib/$(1)/Makefile: CONFIGURE_FLAGS += $($(1)_CONFIGURE_FLAGS)
 endif
+
+contrib/$(1)/configure: contrib/$(1).$($(1)_ARCHTYPE)
+	tar -xv -C contrib -f "$$<"
+	cd "$$(dir $$@)" && test -e ./configure && touch ./configure
 
 contrib/$(1)/Makefile: contrib/$(1)/configure
 	cd "$$(dir $$@)" && ./configure $$(CONFIGURE_FLAGS)
@@ -119,17 +123,17 @@ contrib/%.tar.xz:
 	$(DOWNLOAD) -O "$@" "$(DOWNLOAD_BASE)/$*.tar.xz"
 
 # remember to touch configure to stop make from continually re-extracting tarballs
-contrib/%/configure: contrib/%.tar.gz
-	tar -xvz -C contrib -f "$<"
-	cd "$(dir $@)" && test -e ./configure && touch ./configure
+# contrib/%/configure: #contrib/%.tar.gz
+# 	tar -xv -C contrib -f "$<"
+# 	cd "$(dir $@)" && test -e ./configure && touch ./configure
 
-contrib/%/configure: contrib/%.tar.xz
-	tar -xvJ -C contrib -f "$<"
-	cd "$(dir $@)" && test -e ./configure && touch ./configure
+# contrib/%/configure: contrib/%.tar.xz
+# 	tar -xvJ -C contrib -f "$<"
+# 	cd "$(dir $@)" && test -e ./configure && touch ./configure
 
-contrib/%/configure: contrib/%.tar.bz2
-	tar -xvj -C contrib -f "$<"
-	cd "$(dir $@)" && test -e ./configure && touch ./configure
+# contrib/%/configure: contrib/%.tar.bz2
+# 	tar -xvj -C contrib -f "$<"
+# 	cd "$(dir $@)" && test -e ./configure && touch ./configure
 
 independent: contrib/glib-2.44.1.tar.xz
 independent: contrib/libantlr3c-3.4.tar.gz
@@ -141,7 +145,8 @@ submodules:
 define submodule_rules
 
 ifdef $(1)_DEPENDENCIES
-submodules/$(1)/configure.ac: $($(1)_DEPENDENCIES)
+submodules/$(1)/Makefile: | $($(1)_DEPENDENCIES)
+all_submodules_$(1): $($(1)_DEPENDENCIES)
 endif
 
 ifdef $(1)_CONFIGURE_FLAGS
@@ -184,9 +189,14 @@ endef
 ############################################################ Contrib
 
 ANTLR := libantlr3c-3.4
+glib-2.44.1_DEPENDENCIES := install_contrib_zlib-1.2.8 install_contrib_libffi-3.2.1
 # not antlr because patching, not boost because special build system
-# ... actually it's only glib, apparently
-CONTRIB_NAMES := glib-2.44.1
+elfutils-0.163_CONFIGURE_FLAGS := --program-prefix=elfutils-
+CONTRIB_NAMES := glib-2.44.1 zlib-1.2.8 libffi-3.2.1 elfutils-0.163
+glib-2.44.1_ARCHTYPE = tar.xz
+zlib-1.2.8_ARCHTYPE = tar.gz
+libffi-3.2.1_ARCHTYPE = tar.gz
+elfutils-0.163_ARCHTYPE = tar.bz2
 
 $(foreach name,$(CONTRIB_NAMES),$(eval $(call contrib_rules,$(name))))
 
@@ -237,7 +247,11 @@ contrib/$(BOOST)/b2: contrib/$(BOOST)/bootstrap.sh
 build_boost: contrib/$(BOOST)/b2
 	cd "$(dir $<)" && ./b2 -s NO_BZIP2=1 --with-filesystem --with-iostreams --with-regex stage
 
-install_boost: include/boost lib/libboost_regex.a lib/libboost_regex.so lib/libboost_regex.so.$(BOOST_SONAME)
+boost_lib = lib/libboost_$(1).a lib/libboost_$(1).so lib/libboost_$(1).so.$(BOOST_SONAME)
+
+install_boost: include/boost
+install_boost: $(call boost_lib,filesystem) $(call boost_lib,iostreams) $(call boost_lib,regex)
+install_boost: 
 
 include/boost: build_boost
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/contrib/$(BOOST)/boost" "`pwd`/$@"
@@ -291,7 +305,7 @@ $(foreach name,$(SUBMODULE_NAMES),$(eval $(call submodule_rules,$(name),$($(name
 submodules/libdwarf/configure:
 	git submodule update --init --recursive
 #	cd "$(dir $@)" && libtoolize && autoreconf -i
-submodules/libdwarf/Makefile: submodules/libdwarf/configure
+submodules/libdwarf/Makefile: submodules/libdwarf/configure | install_contrib_elfutils-0.163 install_contrib_zlib-1.2.8
 	cd submodules/libdwarf && ./configure $(CONFIGURE_FLAGS) --enable-shared
 
 .PHONY: clean_libdwarf
@@ -300,7 +314,7 @@ clean_libdwarf:
 clean: clean_libdwarf
 
 .PHONY: all_submodules_libdwarf
-all_submodules_libdwarf: submodules/libdwarf/Makefile
+all_submodules_libdwarf: submodules/libdwarf/Makefile install_contrib_elfutils-0.163 install_contrib_zlib-1.2.8
 	$(MAKE) -C "submodules/libdwarf/libdwarf" all
 	$(MAKE) -C "submodules/libdwarf/dwarfdump" all
 all: all_submodules_libdwarf

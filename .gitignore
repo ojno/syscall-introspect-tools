@@ -9,6 +9,12 @@
 /contrib/libantlr3c-3.4.tar.gz
 /contrib/boost_1_58_0.tar.bz2
 /contrib/boost_1_58_0/
+/contrib/elfutils-0.163.tar.bz2
+/contrib/libffi-3.2.1.tar.gz
+/contrib/zlib-1.2.8.tar.gz
+/contrib/elfutils-0.163/
+/contrib/libffi-3.2.1/
+/contrib/zlib-1.2.8/
 
 /scripts/linux-syscall-addrs
 /scripts/linux-syscall-ifacetypes.c
