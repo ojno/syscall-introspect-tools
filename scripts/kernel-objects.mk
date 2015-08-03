@@ -1,26 +1,45 @@
 -include config.mk
 
-LINUX_ZIMAGE ?= /boot/vmlinuz-$(shell uname -r)
-LINUX_SYSTEM_MAP ?= /boot/System.map-$(shell uname -r)
+LINUX_ZIMAGE ?= vmlinuz-$(shell uname -r)
+LINUX_SYSTEM_MAP ?= System.map-$(shell uname -r)
 LINUX_IMAGE ?= vmlinux
-LINUX_IMAGE_DWARF ?= /usr/lib/debug/$(shell echo $(LINUX_ZIMAGE) | sed 's/vmlinuz/vmlinux/' )
+LINUX_IMAGE_DWARF ?= $(shell echo $(LINUX_ZIMAGE) | sed 's/vmlinuz/vmlinux/' )
 DWARFHPP ?= dwarfhpp
-#IFACETYPES ?= ifacetypes
-
-IFACETYPES := ../../liballocs/tools/ifacetypes
-LD_LIBRARY_PATH := $$HOME/prefix/lib:../../trap-syscalls/contrib/dwarfidl/lib:../../trap-syscalls/contrib/dwarfidl/contrib/libcxxgen/lib:../../trap-syscalls/contrib/dwarfidl/contrib/libdwarfpp/lib:$$LD_LIBRARY_PATH
+IFACETYPES ?= ifacetypes
 
 .PHONY: default
 default: linux-syscalls.h
 
+.PHONY: ensure_kernel_images
+ensure_kernel_images: $(LINUX_ZIMAGE) $(LINUX_SYSTEM_MAP) $(LINUX_IMAGE_DWARF)
+
+.PHONY: $(LINUX_ZIMAGE) $(LINUX_SYSTEM_MAP) $(LINUX_IMAGE_DWARF)
+$(LINUX_ZIMAGE) $(LINUX_SYSTEM_MAP) $(LINUX_IMAGE_DWARF):
+	@test -r $(LINUX_ZIMAGE) -a -r $(LINUX_SYSTEM_MAP) -a -r $(LINUX_IMAGE_DWARF)|| ( \
+		echo && \
+		echo "************************************************************" && \
+		echo "************************************************************" && \
+		echo && \
+		echo "Please copy the following files:" && \
+		echo "/boot/$(LINUX_ZIMAGE)" && \
+		echo "/boot/$(LINUX_SYSTEM_MAP)" && \
+		echo "/usr/lib/debug/boot/$(LINUX_IMAGE_DWARF)" && \
+		echo "into ./scripts/ and ensure they are readable." && \
+		echo "(Depending on your distribution, you may need to have root to do this.)" && \
+		echo && \
+		echo "************************************************************" && \
+		echo "************************************************************" && \
+		echo && \
+		exit 1 )
+
 $(LINUX_IMAGE): $(LINUX_ZIMAGE)
-	start_row="$$( sudo od -t x1 -A d "$<" | grep "1f 8b 08" | head -n1 )"; \
+	start_row="$$( od -t x1 -A d "$<" | grep "1f 8b 08" | head -n1 )"; \
 	octal_row_off="$$( echo "$$start_row" | tr -s '[:blank:]' '\t' | cut -f1 )"; \
 	octal_char_off="$$( echo "$$start_row" | sed 's/1f 8b 08.*//' | wc -c )"; \
 	octal_byte_off="$$( expr $$( expr $$octal_char_off - 8 ) / 3 )"; \
 	echo "octal_row_off is $$octal_row_off" 1>&2; \
 	echo "octal_byte_off is $$octal_byte_off" 1>&2; \
-	sudo dd if="$<" bs=1 skip=$$( expr $$octal_row_off + $$octal_byte_off ) | ( gunzip > "$@" || true )
+	dd if="$<" bs=1 skip=$$( expr $$octal_row_off + $$octal_byte_off ) | ( gunzip > "$@" || true )
 	test -s "$@" || rm -f "$@"
 
 # How can we get an honest list of the actual set of system calls 
@@ -31,7 +50,7 @@ $(LINUX_IMAGE): $(LINUX_ZIMAGE)
 # value that's *not* some address in the System.map.
 
 linux-syscall-table.raw-objdump: $(LINUX_IMAGE) $(LINUX_SYSTEM_MAP)
-	table_addr=$$( sudo cat "$(LINUX_SYSTEM_MAP)" | grep '[[:blank:]]sys_call_table' | tr -s '[:blank:]' '\t' | cut -f1 ); \
+	table_addr=$$( cat "$(LINUX_SYSTEM_MAP)" | grep '[[:blank:]]sys_call_table' | tr -s '[:blank:]' '\t' | cut -f1 ); \
 	echo "table addr is $$table_addr" 1>&2; \
 	objdump -rs --start-address=0x$${table_addr} "$(LINUX_IMAGE)" > "$@"
 
@@ -46,7 +65,7 @@ linux-syscall-table.dump: linux-syscall-table.raw-objdump
 linux-syscall-addrs: linux-syscall-table.dump $(LINUX_SYSTEM_MAP)
 	cat "$<" | \
 	(ctr=0; while read addr; do \
-		echo -n "$$ctr "; sudo cat "$(LINUX_SYSTEM_MAP)" | grep "^$$addr" | egrep -v '[[:blank:]]+(compat_)?SyS_[a-zA-Z0-9_]+$$' | uniq -w16 ; \
+		echo -n "$$ctr "; cat "$(LINUX_SYSTEM_MAP)" | grep "^$$addr" | egrep -v '[[:blank:]]+(compat_)?SyS_[a-zA-Z0-9_]+$$' | uniq -w16 ; \
 		ctr=`expr $$ctr + 1`; \
 	done ) | tr -s '[:blank:]' '\t' | sed -r '/0{16}/ q' > "$@"
 

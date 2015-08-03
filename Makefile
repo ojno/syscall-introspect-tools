@@ -1,5 +1,13 @@
 default: install
 
+# before going any further, ensure we've copied in the kernel images
+# to avoid asking for sudo halfway through
+% :: ensure_kernel_images ; :
+
+.PHONY: ensure_kernel_images
+ensure_kernel_images:
+	$(MAKE) -C scripts -f kernel-objects.mk ensure_kernel_images
+
 ############################################################ Setup
 
 .SUFFIXES:
@@ -32,9 +40,12 @@ independent: ;
 # where are we?
 THIS_MAKEFILE := $(realpath $(lastword $(MAKEFILE_LIST)))
 PREFIX := $(dir $(THIS_MAKEFILE))
-CFLAGS += -I$(PREFIX)/include -fPIC
+
+WARNINGS := -Wall -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-local-typedefs -Wno-deprecated-declarations
+
+CFLAGS += -I$(PREFIX)/include -fPIC $(WARNINGS)
 CPPFLAGS += -I$(PREFIX)/include
-CXXFLAGS += -I$(PREFIX)/include -fPIC
+CXXFLAGS += -I$(PREFIX)/include -fPIC $(WARNINGS)
 LDFLAGS += -L$(PREFIX)/lib
 PATH := $(PREFIX)/bin:$(PATH)
 LD_LIBRARY_PATH := $(PREFIX)/lib:$(PATH)
@@ -135,10 +146,6 @@ contrib/%.tar.xz:
 # 	tar -xvj -C contrib -f "$<"
 # 	cd "$(dir $@)" && test -e ./configure && touch ./configure
 
-independent: contrib/glib-2.44.1.tar.xz
-independent: contrib/libantlr3c-3.4.tar.gz
-
-
 submodules:
 	mkdir -p "$@"
 
@@ -192,11 +199,12 @@ ANTLR := libantlr3c-3.4
 glib-2.44.1_DEPENDENCIES := install_contrib_zlib-1.2.8 install_contrib_libffi-3.2.1
 # not antlr because patching, not boost because special build system
 elfutils-0.163_CONFIGURE_FLAGS := --program-prefix=elfutils-
-CONTRIB_NAMES := glib-2.44.1 zlib-1.2.8 libffi-3.2.1 elfutils-0.163
+CONTRIB_NAMES := glib-2.44.1 zlib-1.2.8 libffi-3.2.1 elfutils-0.163 libunwind-1.1
 glib-2.44.1_ARCHTYPE = tar.xz
 zlib-1.2.8_ARCHTYPE = tar.gz
 libffi-3.2.1_ARCHTYPE = tar.gz
 elfutils-0.163_ARCHTYPE = tar.bz2
+libunwind-1.1_ARCHTYPE = tar.gz
 
 $(foreach name,$(CONTRIB_NAMES),$(eval $(call contrib_rules,$(name))))
 
@@ -232,8 +240,8 @@ contrib/$(ANTLR)/configure: contrib/$(ANTLR)/configure.ac
 
 independent: contrib/$(ANTLR)/configure
 
-BOOST := boost_1_58_0
-BOOST_SONAME := 1.58.0
+BOOST := boost_1_54_0
+BOOST_SONAME := 1.54.0
 independent: contrib/$(BOOST).tar.bz2
 
 contrib/$(BOOST)/bootstrap.sh: contrib/$(BOOST).tar.bz2
@@ -245,13 +253,12 @@ contrib/$(BOOST)/b2: contrib/$(BOOST)/bootstrap.sh
 
 .PHONY: build_boost
 build_boost: contrib/$(BOOST)/b2
-	cd "$(dir $<)" && ./b2 -s NO_BZIP2=1 --with-filesystem --with-iostreams --with-regex stage
+	cd "$(dir $<)" && ./b2 -s NO_BZIP2=1 --with-filesystem --with-iostreams --with-regex --with-serialization --with-system stage
 
 boost_lib = lib/libboost_$(1).a lib/libboost_$(1).so lib/libboost_$(1).so.$(BOOST_SONAME)
 
 install_boost: include/boost
-install_boost: $(call boost_lib,filesystem) $(call boost_lib,iostreams) $(call boost_lib,regex)
-install_boost: 
+install_boost: $(call boost_lib,filesystem) $(call boost_lib,iostreams) $(call boost_lib,regex) $(call boost_lib,serialization) $(call boost_lib,system)
 
 include/boost: build_boost
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/contrib/$(BOOST)/boost" "`pwd`/$@"
@@ -264,7 +271,7 @@ lib/libboost_%: contrib/$(BOOST)/stage/lib/libboost_%
 
 ############################################################ Submodules
 
-scripts/%: install_submodules_libdwarfpp install_submodules_liballocs
+scripts/%: | install_submodules_libdwarfpp install_submodules_liballocs
 	$(MAKE) -C scripts -f kernel-objects.mk "$*"
 
 submodules/libfootprints/src/linux-syscall-ifacetypes.c: scripts/linux-syscall-ifacetypes.c
@@ -277,20 +284,20 @@ submodules/trap-syscalls/src/dynamic-list: scripts/dynamic-list
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
 
 
-submodules/dwarfidl/parser/dwarfidlSimpleCParser.c:
-	$(MAKE) -C submodules/dwarfidl parser/dwarfidlSimpleCParser.c
+submodules/dwarfidl/parser/dwarfidlSimpleCParser.c submodules/dwarfidl/parser/dwarfidlSimpleCLexer.c:
+	$(MAKE) -C submodules/dwarfidl parser/dwarfidlSimpleCParser.c parser/dwarfidlSimpleCLexer.c
 
 libantlr3cxx_DEPENDENCIES := install_contrib_$(ANTLR) 
 libsrk31cxx_DEPENDENCIES := install_submodules_libcxxfileno install_boost
 libdwarfpp_DEPENDENCIES := install_submodules_libsrk31cxx install_submodules_libdwarf install_boost
 libcxxgen_DEPENDENCIES := install_submodules_libdwarfpp
 dwarfidl_DEPENDENCIES := install_submodules_libdwarfpp install_submodules_libcxxgen install_submodules_libantlr3cxx install_contrib_$(ANTLR) install_boost
-liballocs_DEPENDENCIES := install_submodules_dwarfidl install_boost
+liballocs_DEPENDENCIES := install_submodules_dwarfidl install_boost install_contrib_libunwind-1.1
 libfootprints_DEPENDENCIES := install_submodules_liballocs submodules/libfootprints/src/linux-syscall-ifacetypes.c
 
 independent: submodules/libfootprints/src/linux-syscall-ifacetypes.c
 independent: submodules/trap-syscalls/src/linux-syscall-macros.h
-independent: submodules/dwarfidl/parser/dwarfidlSimpleCParser.c
+independent: submodules/dwarfidl/parser/dwarfidlSimpleCLexer.c submodules/dwarfidl/parser/dwarfidlSimpleCParser.c
 
 # not libdwarf or trap-syscalls because they don't have a 'make install'
 SUBMODULE_NAMES := libantlr3cxx libcxxfileno libsrk31cxx libdwarfpp dwarfidl libcxxgen liballocs libfootprints
@@ -313,15 +320,19 @@ clean_libdwarf:
 	-$(MAKE) -C "submodules/libdwarf" clean
 clean: clean_libdwarf
 
+.PHONY: install_libdwarf_headers
+install_libdwarf_headers: submodules/libdwarf/Makefile
+	for f in include/libdwarf.h include/dwarf.h; do ${INSTALL} -m 644 submodules/libdwarf/libdwarf/`basename $$f` $$f; done
+
 .PHONY: all_submodules_libdwarf
-all_submodules_libdwarf: submodules/libdwarf/Makefile install_contrib_elfutils-0.163 install_contrib_zlib-1.2.8
+all_submodules_libdwarf: submodules/libdwarf/Makefile install_contrib_elfutils-0.163 install_contrib_zlib-1.2.8 install_libdwarf_headers
 	$(MAKE) -C "submodules/libdwarf/libdwarf" all
 	$(MAKE) -C "submodules/libdwarf/dwarfdump" all
 all: all_submodules_libdwarf
 
 .PHONY: install_submodules_libdwarf
 install_submodules_libdwarf: all_submodules_libdwarf
-	for f in include/libdwarf.h include/dwarf.h lib/libdwarf.so lib/libdwarf.a; do ${INSTALL} -m 644 submodules/libdwarf/libdwarf/`basename $$f` $$f; done
+	for f in lib/libdwarf.so lib/libdwarf.a; do ${INSTALL} -m 644 submodules/libdwarf/libdwarf/`basename $$f` $$f; done
 	${INSTALL} submodules/libdwarf/dwarfdump/dwarfdump bin/dwarfdump
 	chmod 755 lib/libdwarf.so
 install: install_submodules_libdwarf
