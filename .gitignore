@@ -4,7 +4,20 @@
 /share/
 
 /contrib/glib-2.44.1/
+/contrib/glib-2.44.1.tar.xz
 /contrib/libantlr3c-3.4/
+/contrib/libantlr3c-3.4.tar.gz
+/contrib/boost_1_58_0.tar.bz2
+/contrib/boost_1_58_0/
+
+/scripts/linux-syscall-addrs
+/scripts/linux-syscall-ifacetypes.c
+/scripts/linux-syscall-macros.h
+/scripts/linux-syscall-table.dump
+/scripts/linux-syscall-table.raw-objdump
+/scripts/linux-syscalls.list
+/scripts/dynamic-list
+/scripts/vmlinux
 
 *.allocstubs.c
 *.allocstubs.s
