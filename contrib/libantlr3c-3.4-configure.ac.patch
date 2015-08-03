@@ -1,6 +1,15 @@
 diff -u libantlr3c-3.4/configure.ac libantlr3c-3.4-patched/configure.ac
 --- libantlr3c-3.4/configure.ac	2011-07-19 19:14:04.000000000 +0100
-+++ libantlr3c-3.4-patched/configure.ac	2015-08-03 12:39:18.287742437 +0100
++++ libantlr3c-3.4-patched/configure.ac	2015-08-03 15:45:09.630456136 +0100
+@@ -51,7 +51,7 @@
+ 		[AS_HELP_STRING([--disable-antlrdebug], [Turns off default flags that include the antlr debugger in the runtime. Specify to remove debugger and the socket dependancies (default --enable-antlrdebug)])],
+ 		[], [enable_antlrdebug=yes])
+ 
+-AM_INIT_AUTOMAKE(foreign)
++AM_INIT_AUTOMAKE([foreign subdir-objects])
+ AC_LANG(C)
+ AC_PROG_CC([xlc aCC gcc cc])
+ AM_MAINTAINER_MODE
 @@ -134,7 +134,7 @@
   ;;
  esac
