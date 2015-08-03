@@ -1,0 +1,25 @@
+diff -u libantlr3c-3.4/configure.ac libantlr3c-3.4-patched/configure.ac
+--- libantlr3c-3.4/configure.ac	2011-07-19 19:14:04.000000000 +0100
++++ libantlr3c-3.4-patched/configure.ac	2015-08-03 12:39:18.287742437 +0100
+@@ -134,7 +134,7 @@
+  ;;
+ esac
+ 
+-CFLAGS="$CCFLAGS64 $CPPCMNTFLAGS $OPTIMFLAGS $DEBUGFLAGS $WARNFLAGS"
++CFLAGS="$CFLAGS $CCFLAGS64 $CPPCMNTFLAGS $OPTIMFLAGS $DEBUGFLAGS $WARNFLAGS"
+ AC_MSG_RESULT([$CFLAGS])
+ AC_SUBST([OBJECT_MODE])
+ 
+@@ -148,7 +148,6 @@
+ # Checks for libraries.
+ 
+ # Checks for header files.
+-AC_INCLUDES_DEFAULT()
+ AC_HEADER_RESOLV
+ AC_CHECK_HEADERS([sys/malloc.h malloc.h], [], [],
+ [[#ifdef HAVE_SYS_MALLOC_H
+Common subdirectories: libantlr3c-3.4/doxygen and libantlr3c-3.4-patched/doxygen
+Common subdirectories: libantlr3c-3.4/include and libantlr3c-3.4-patched/include
+Common subdirectories: libantlr3c-3.4/m4 and libantlr3c-3.4-patched/m4
+Common subdirectories: libantlr3c-3.4/src and libantlr3c-3.4-patched/src
+Common subdirectories: libantlr3c-3.4/vsrulefiles and libantlr3c-3.4-patched/vsrulefiles
