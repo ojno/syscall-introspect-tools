@@ -369,7 +369,7 @@ independent: trap_syscalls_contrib_independent
 
 
 .PHONY: trap_syscalls_contrib
-trap_syscalls_contrib:
+trap_syscalls_contrib: submodules/trap-syscalls/contrib/liballocs submodules/trap-syscalls/contrib/dwarfidl submodules/trap-syscalls/contrib/libfootprints submodules/trap-syscalls/contrib/$(ANTLR)
 	$(MAKE) -C submodules/trap-syscalls/contrib
 
 .PHONY: all_submodules_trap-syscalls
