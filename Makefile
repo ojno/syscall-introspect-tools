@@ -2,7 +2,7 @@ default: install
 
 # before going any further, ensure we've copied in the kernel images
 # to avoid asking for sudo halfway through
-% :: ensure_kernel_images ; :
+all install: ensure_kernel_images
 
 .PHONY: ensure_kernel_images
 ensure_kernel_images:
@@ -119,7 +119,7 @@ distclean_contrib_$(1):
 	-$(MAKE) -C "contrib/$(1)" distclean
 distclean: distclean_contrib_$(1)
 
-independent: contrib/$(1)/configure
+independent: contrib/$(1).$($(1)_ARCHTYPE)
 
 
 endef
@@ -284,8 +284,12 @@ submodules/trap-syscalls/src/dynamic-list: scripts/dynamic-list
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
 
 
-submodules/dwarfidl/parser/dwarfidlSimpleCParser.c submodules/dwarfidl/parser/dwarfidlSimpleCLexer.c:
-	$(MAKE) -C submodules/dwarfidl parser/dwarfidlSimpleCParser.c parser/dwarfidlSimpleCLexer.c
+ANTLR_CMD := java -classpath ../contrib/antlr-3.4-complete.jar:$(CLASSPATH) org.antlr.Tool
+
+submodules/dwarfidl/parser/dwarfidlSimpleCParser.c: submodules/dwarfidl/configure
+	cd submodules/dwarfidl/parser && $(ANTLR_CMD) dwarfidlSimpleC.g
+
+independent: submodules/dwarfidl/parser/dwarfidlSimpleCParser.c
 
 libantlr3cxx_DEPENDENCIES := install_contrib_$(ANTLR) 
 libsrk31cxx_DEPENDENCIES := install_submodules_libcxxfileno install_boost
@@ -295,9 +299,6 @@ dwarfidl_DEPENDENCIES := install_submodules_libdwarfpp install_submodules_libcxx
 liballocs_DEPENDENCIES := install_submodules_dwarfidl install_boost install_contrib_libunwind-1.1
 libfootprints_DEPENDENCIES := install_submodules_liballocs submodules/libfootprints/src/linux-syscall-ifacetypes.c
 
-independent: submodules/libfootprints/src/linux-syscall-ifacetypes.c
-independent: submodules/trap-syscalls/src/linux-syscall-macros.h
-independent: submodules/dwarfidl/parser/dwarfidlSimpleCLexer.c submodules/dwarfidl/parser/dwarfidlSimpleCParser.c
 
 # not libdwarf or trap-syscalls because they don't have a 'make install'
 SUBMODULE_NAMES := libantlr3cxx libcxxfileno libsrk31cxx libdwarfpp dwarfidl libcxxgen liballocs libfootprints
@@ -349,20 +350,24 @@ distclean: distclean_submodules_libdwarf
 
 
 
-submodules/trap-syscalls/contrib/liballocs: install_submodules_liballocs
+submodules/trap-syscalls/Makefile:
+	git submodule update --init --recursive submodules/trap-syscalls
+
+
+submodules/trap-syscalls/contrib/liballocs: submodules/trap-syscalls/Makefile install_submodules_liballocs
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/submodules/liballocs" "`pwd`/$@"
 
-submodules/trap-syscalls/contrib/dwarfidl: install_submodules_dwarfidl
+submodules/trap-syscalls/contrib/dwarfidl: submodules/trap-syscalls/Makefile install_submodules_dwarfidl
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/submodules/dwarfidl" "`pwd`/$@"
 
-submodules/trap-syscalls/contrib/libfootprints: install_submodules_libfootprints
+submodules/trap-syscalls/contrib/libfootprints: submodules/trap-syscalls/Makefile install_submodules_libfootprints
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/submodules/libfootprints" "`pwd`/$@"
 
-submodules/trap-syscalls/contrib/$(ANTLR): install_contrib_$(ANTLR)
+submodules/trap-syscalls/contrib/$(ANTLR): submodules/trap-syscalls/Makefile install_contrib_$(ANTLR)
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/contrib/$(ANTLR)" "`pwd`/$@"
 
 .PHONY: extract_trap_syscalls_contrib
-trap_syscalls_contrib_independent:
+trap_syscalls_contrib_independent: submodules/trap-syscalls/Makefile
 	$(MAKE) -C submodules/trap-syscalls/contrib independent
 
 independent: trap_syscalls_contrib_independent
@@ -373,7 +378,7 @@ trap_syscalls_contrib: submodules/trap-syscalls/contrib/liballocs submodules/tra
 	$(MAKE) -C submodules/trap-syscalls/contrib
 
 .PHONY: all_submodules_trap-syscalls
-all_submodules_trap-syscalls: install_submodules_libfootprints submodules/trap-syscalls/contrib/liballocs submodules/trap-syscalls/contrib/dwarfidl submodules/trap-syscalls/contrib/libfootprints submodules/trap-syscalls/contrib/$(ANTLR) submodules/trap-syscalls/src/linux-syscall-macros.h trap_syscalls_contrib
+all_submodules_trap-syscalls: install_submodules_libfootprints submodules/trap-syscalls/contrib/liballocs submodules/trap-syscalls/contrib/dwarfidl submodules/trap-syscalls/contrib/libfootprints submodules/trap-syscalls/contrib/$(ANTLR) submodules/trap-syscalls/src/linux-syscall-macros.h trap_syscalls_contrib submodules/trap-syscalls/Makefile
 	$(MAKE) -C submodules/trap-syscalls src
 all: all_submodules_trap-syscalls
 install: all_submodules_trap-syscalls
