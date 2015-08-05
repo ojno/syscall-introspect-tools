@@ -46,7 +46,7 @@ WARNINGS := -Wall -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-
 CFLAGS += -I$(PREFIX)/include -fPIC $(WARNINGS)
 CPPFLAGS += -I$(PREFIX)/include
 CXXFLAGS += -I$(PREFIX)/include -fPIC $(WARNINGS)
-LDFLAGS += -L$(PREFIX)/lib
+LDFLAGS += -L$(PREFIX)/lib -Wl,--no-as-needed
 PATH := $(PREFIX)/bin:$(PATH)
 LD_LIBRARY_PATH := $(PREFIX)/lib:$(PATH)
 PKG_CONFIG_PATH := $(PREFIX)/lib/pkgconfig:$(PATH)
@@ -164,7 +164,7 @@ submodules/$(1)/configure.ac: ;
 
 submodules/$(1)/configure: submodules/$(1)/configure.ac
 	git submodule update --init --recursive submodules/$(1)
-	cd "$$(dir $$@)" && libtoolize && autoreconf -i
+	cd "$$(dir $$@)" && libtoolize -cfi && autoreconf -i
 
 submodules/$(1)/Makefile: submodules/$(1)/configure
 	cd "$$(dir $$@)" && ./configure $$(CONFIGURE_FLAGS)
@@ -309,10 +309,10 @@ $(foreach name,$(SUBMODULE_NAMES),$(eval $(call submodule_rules,$(name),$($(name
 
 
 
-#submodules/libdwarf/configure.ac: ;
+
 submodules/libdwarf/configure:
 	git submodule update --init --recursive
-#	cd "$(dir $@)" && libtoolize && autoreconf -i
+
 submodules/libdwarf/Makefile: submodules/libdwarf/configure | install_contrib_elfutils-0.163 install_contrib_zlib-1.2.8
 	cd submodules/libdwarf && ./configure $(CONFIGURE_FLAGS) --enable-shared
 
@@ -327,15 +327,15 @@ install_libdwarf_headers: submodules/libdwarf/Makefile
 
 .PHONY: all_submodules_libdwarf
 all_submodules_libdwarf: submodules/libdwarf/Makefile install_contrib_elfutils-0.163 install_contrib_zlib-1.2.8 install_libdwarf_headers
-	$(MAKE) -C "submodules/libdwarf/libdwarf" all
-	$(MAKE) -C "submodules/libdwarf/dwarfdump" all
 all: all_submodules_libdwarf
 
 .PHONY: install_submodules_libdwarf
 install_submodules_libdwarf: all_submodules_libdwarf
+	$(MAKE) -C "submodules/libdwarf/libdwarf" all
 	for f in lib/libdwarf.so lib/libdwarf.a; do ${INSTALL} -m 644 submodules/libdwarf/libdwarf/`basename $$f` $$f; done
-	${INSTALL} submodules/libdwarf/dwarfdump/dwarfdump bin/dwarfdump
 	chmod 755 lib/libdwarf.so
+	$(MAKE) -C "submodules/libdwarf/dwarfdump" all
+	${INSTALL} submodules/libdwarf/dwarfdump/dwarfdump bin/dwarfdump
 install: install_submodules_libdwarf
 
 .PHONY: clean_submodules_libdwarf
