@@ -277,6 +277,9 @@ scripts/%: | install_submodules_libdwarfpp install_submodules_liballocs
 submodules/libfootprints/src/linux-syscall-ifacetypes.c: scripts/linux-syscall-ifacetypes.c
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
 
+submodules/trap-syscalls/src/linux-syscall-ifacetypes.c: scripts/linux-syscall-ifacetypes.c
+	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
+
 submodules/trap-syscalls/src/linux-syscall-macros.h: scripts/linux-syscall-macros.h
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
 
@@ -378,7 +381,7 @@ trap_syscalls_contrib: submodules/trap-syscalls/contrib/liballocs submodules/tra
 	$(MAKE) -C submodules/trap-syscalls/contrib
 
 .PHONY: all_submodules_trap-syscalls
-all_submodules_trap-syscalls: install_submodules_libfootprints submodules/trap-syscalls/contrib/liballocs submodules/trap-syscalls/contrib/dwarfidl submodules/trap-syscalls/contrib/libfootprints submodules/trap-syscalls/contrib/$(ANTLR) submodules/trap-syscalls/src/linux-syscall-macros.h trap_syscalls_contrib submodules/trap-syscalls/Makefile
+all_submodules_trap-syscalls: install_submodules_libfootprints submodules/trap-syscalls/contrib/liballocs submodules/trap-syscalls/contrib/dwarfidl submodules/trap-syscalls/contrib/libfootprints submodules/trap-syscalls/contrib/$(ANTLR) submodules/trap-syscalls/src/linux-syscall-macros.h submodules/trap-syscalls/src/linux-syscall-ifacetypes.c trap_syscalls_contrib submodules/trap-syscalls/Makefile
 	$(MAKE) -C submodules/trap-syscalls src
 all: all_submodules_trap-syscalls
 install: all_submodules_trap-syscalls
