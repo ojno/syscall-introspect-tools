@@ -16,12 +16,6 @@
 /contrib/libffi-3.2.1/
 /contrib/zlib-1.2.8/
 
-/scripts/linux-syscall-addrs
-/scripts/linux-syscall-ifacetypes.c
-/scripts/linux-syscall-macros.h
-/scripts/linux-syscall-table.dump
-/scripts/linux-syscall-table.raw-objdump
-/scripts/linux-syscalls.list
 /scripts/dynamic-list
 /scripts/vmlinux
 
