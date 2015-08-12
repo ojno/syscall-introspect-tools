@@ -15,7 +15,7 @@ ensure_kernel_images: $(LINUX_ZIMAGE) $(LINUX_SYSTEM_MAP) $(LINUX_IMAGE_DWARF)
 
 .PHONY: $(LINUX_ZIMAGE) $(LINUX_SYSTEM_MAP) $(LINUX_IMAGE_DWARF)
 $(LINUX_ZIMAGE) $(LINUX_SYSTEM_MAP) $(LINUX_IMAGE_DWARF):
-	@test -r $(LINUX_ZIMAGE) -a -r $(LINUX_SYSTEM_MAP) -a -r $(LINUX_IMAGE_DWARF)|| ( \
+	@test -r linux-syscall-ifacetypes.c || ( test -r $(LINUX_ZIMAGE) -a -r $(LINUX_SYSTEM_MAP) -a -r $(LINUX_IMAGE_DWARF)|| ( \
 		echo && \
 		echo "************************************************************" && \
 		echo "************************************************************" && \
@@ -30,7 +30,7 @@ $(LINUX_ZIMAGE) $(LINUX_SYSTEM_MAP) $(LINUX_IMAGE_DWARF):
 		echo "************************************************************" && \
 		echo "************************************************************" && \
 		echo && \
-		exit 1 )
+		exit 1 ))
 
 $(LINUX_IMAGE): $(LINUX_ZIMAGE)
 	start_row="$$( od -t x1 -A d "$<" | grep "1f 8b 08" | head -n1 )"; \
