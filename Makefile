@@ -196,11 +196,12 @@ endef
 ############################################################ Contrib
 
 ANTLR := libantlr3c-3.4
-glib-2.44.1_DEPENDENCIES := install_contrib_zlib-1.2.8 install_contrib_libffi-3.2.1
+#glib-2.44.1_DEPENDENCIES := install_contrib_zlib-1.2.8 install_contrib_libffi-3.2.1
 # not antlr because patching, not boost because special build system
 elfutils-0.163_CONFIGURE_FLAGS := --program-prefix=elfutils-
-CONTRIB_NAMES := glib-2.44.1 zlib-1.2.8 libffi-3.2.1 elfutils-0.163 libunwind-1.1
-glib-2.44.1_ARCHTYPE = tar.xz
+#glib-2.44.1
+CONTRIB_NAMES := zlib-1.2.8 libffi-3.2.1 elfutils-0.163 libunwind-1.1
+#glib-2.44.1_ARCHTYPE = tar.xz
 zlib-1.2.8_ARCHTYPE = tar.gz
 libffi-3.2.1_ARCHTYPE = tar.gz
 elfutils-0.163_ARCHTYPE = tar.bz2
