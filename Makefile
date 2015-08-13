@@ -278,6 +278,9 @@ scripts/%: | install_submodules_libdwarfpp install_submodules_liballocs
 submodules/libfootprints/src/linux-syscall-ifacetypes.c: scripts/linux-syscall-ifacetypes.c
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
 
+submodules/libfootprints/src/linux-syscall-macros.h: scripts/linux-syscall-macros.h
+	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
+
 submodules/trap-syscalls/src/linux-syscall-ifacetypes.c: scripts/linux-syscall-ifacetypes.c
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
 
@@ -301,7 +304,7 @@ libdwarfpp_DEPENDENCIES := install_submodules_libsrk31cxx install_submodules_lib
 libcxxgen_DEPENDENCIES := install_submodules_libdwarfpp
 dwarfidl_DEPENDENCIES := install_submodules_libdwarfpp install_submodules_libcxxgen install_submodules_libantlr3cxx install_contrib_$(ANTLR) install_boost
 liballocs_DEPENDENCIES := install_submodules_dwarfidl install_boost install_contrib_libunwind-1.1
-libfootprints_DEPENDENCIES := install_submodules_liballocs submodules/libfootprints/src/linux-syscall-ifacetypes.c
+libfootprints_DEPENDENCIES := install_submodules_liballocs submodules/libfootprints/src/linux-syscall-ifacetypes.c submodules/libfootprints/src/linux-syscall-macros.h
 libfootprints-ocaml_DEPENDENCIES := install_submodules_libfootprints
 
 # not libdwarf or trap-syscalls because they don't have a 'make install'
