@@ -302,10 +302,10 @@ libcxxgen_DEPENDENCIES := install_submodules_libdwarfpp
 dwarfidl_DEPENDENCIES := install_submodules_libdwarfpp install_submodules_libcxxgen install_submodules_libantlr3cxx install_contrib_$(ANTLR) install_boost
 liballocs_DEPENDENCIES := install_submodules_dwarfidl install_boost install_contrib_libunwind-1.1
 libfootprints_DEPENDENCIES := install_submodules_liballocs submodules/libfootprints/src/linux-syscall-ifacetypes.c
-
+libfootprints-ocaml_DEPENDENCIES := install_submodules_libfootprints
 
 # not libdwarf or trap-syscalls because they don't have a 'make install'
-SUBMODULE_NAMES := libantlr3cxx libcxxfileno libsrk31cxx libdwarfpp dwarfidl libcxxgen liballocs libfootprints
+SUBMODULE_NAMES := libantlr3cxx libcxxfileno libsrk31cxx libdwarfpp dwarfidl libcxxgen liballocs libfootprints libfootprints-ocaml
 
 $(foreach name,$(SUBMODULE_NAMES),$(eval $(call submodule_rules,$(name),$($(name)),$(strip $($(name)_INCLUDES) $($(name)_LIBS)))))
 
@@ -396,4 +396,3 @@ distclean: clean_submodules_trap-syscalls
 
 
 independent: submodules/libdwarf/configure
-
