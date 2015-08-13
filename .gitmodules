@@ -28,3 +28,6 @@
 [submodule "submodules/libantlr3cxx"]
 	path = submodules/libantlr3cxx
 	url = https://github.com/ojno/libantlr3cxx
+[submodule "submodules/libfootprints-ocaml"]
+	path = submodules/libfootprints-ocaml
+	url = https://github.com/ojno/libfootprints-ocaml
