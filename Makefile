@@ -47,9 +47,9 @@ CFLAGS += -I$(PREFIX)/include -fPIC $(WARNINGS)
 CPPFLAGS += -I$(PREFIX)/include
 CXXFLAGS += -I$(PREFIX)/include -fPIC $(WARNINGS)
 LDFLAGS += -L$(PREFIX)/lib -Wl,--no-as-needed
-PATH := $(PREFIX)/bin:$(PATH)
-LD_LIBRARY_PATH := $(PREFIX)/lib:$(LD_LIBRARY_PATH)
-PKG_CONFIG_PATH := $(PREFIX)/lib/pkgconfig:$(PKG_CONFIG_PATH)
+PATH := $(PREFIX)/bin$(if $(PATH),:$(PATH))
+LD_LIBRARY_PATH := $(PREFIX)/lib$(if $(LD_LIBRARY_PATH),:$(LD_LIBRARY_PATH))
+PKG_CONFIG_PATH := $(PREFIX)/lib/pkgconfig$(if $(PKG_CONFIG_PATH),:$(PKG_CONFIG_PATH))
 export CFLAGS
 export CPPFLAGS
 export CXXFLAGS
@@ -291,7 +291,7 @@ submodules/trap-syscalls/src/dynamic-list: scripts/dynamic-list
 	test -L "$@" -o ! -e "$@" && ln -sfT "`pwd`/$<" "`pwd`/$@"
 
 
-ANTLR_CMD := java -classpath ../contrib/antlr-3.4-complete.jar:$(CLASSPATH) org.antlr.Tool
+ANTLR_CMD := java -classpath ../contrib/antlr-3.4-complete.jar$(if $(CLASSPATH),:$(CLASSPATH)) org.antlr.Tool
 
 submodules/dwarfidl/parser/dwarfidlSimpleCParser.c: submodules/dwarfidl/configure
 	cd submodules/dwarfidl/parser && $(ANTLR_CMD) dwarfidlSimpleC.g
