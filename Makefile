@@ -166,7 +166,7 @@ submodules/$(1)/configure: submodules/$(1)/configure.ac
 	git submodule update --init --recursive submodules/$(1)
 	cd "$$(dir $$@)" && libtoolize -cfi && autoreconf -i
 
-submodules/$(1)/Makefile: submodules/$(1)/configure submodules/$(1)/Makefile.in
+submodules/$(1)/Makefile: submodules/$(1)/configure
 	cd "$$(dir $$@)" && ./configure $$(CONFIGURE_FLAGS)
 
 .PHONY: all_submodules_$(1)
